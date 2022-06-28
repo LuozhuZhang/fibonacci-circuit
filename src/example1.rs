@@ -22,8 +22,9 @@ struct FiboChip<F: FieldExt> {
 
 impl<F: FieldExt> FiboChip<F> {
     // 这是一个function（关联函数），返回实例自身
+    // 传入FiboConfig struct，返回其自身
     fn construct(config: FiboConfig) -> Self {
-
+        Self { config, _marker: PhantomData }
     }
 
     // 输入ConstraintSystem，返回FiboConfig
