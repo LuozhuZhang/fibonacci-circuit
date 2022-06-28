@@ -16,6 +16,7 @@ struct FiboConfig {
 
 struct FiboChip<F: FieldExt> {
     config: FiboConfig,
+    // marker在这里并没有实际意义，只不过假装用到了parameter F，防止compiler报错
     _marker: PhantomData<F>,
 }
 
