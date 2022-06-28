@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, default};
 
 use halo2_proofs::{
     arithmetic::FieldExt,
@@ -76,6 +76,22 @@ impl<F: FieldExt> FiboChip<F> {
 struct MyCircuit<F> {
     pub a: Option<F>,
     pub b: Option<F>,
+}
+
+impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
+    type Config = FiboConfig;
+    type FloorPlanner = SimpleFloorPlanner;
+
+    fn without_witnesses(&self) -> Self {
+    }
+
+    fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
+        
+    }
+
+    fn synthesize(&self, config: Self::Config, layouter: impl Layouter<F>) -> Result<(), Error> {
+        
+    }
 }
 
 fn main() {
