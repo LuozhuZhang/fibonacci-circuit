@@ -72,6 +72,12 @@ impl<F: FieldExt> FiboChip<F> {
     }
 }
 
+#[derive(Default)]
+struct MyCircuit<F> {
+    pub a: Option<F>,
+    pub b: Option<F>,
+}
+
 fn main() {
     println!("Hello, world!");
 }
