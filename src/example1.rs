@@ -20,6 +20,21 @@ struct FiboChip<F: FieldExt> {
     _marker: PhantomData<F>,
 }
 
+impl<F: FieldExt> FiboChip<F> {
+    // 这是一个function（关联函数），返回实例自身
+    fn construct(config: FiboConfig) -> Self {
+
+    }
+
+    // 输入ConstraintSystem，返回FiboConfig
+    // ConstraintSystem必须要带一个参数<F>
+    fn configure(meta: &mut ConstraintSystem<F>) -> FiboConfig {
+
+    }
+
+    fn assign()
+}
+
 fn main() {
     println!("Hello, world!");
 }
