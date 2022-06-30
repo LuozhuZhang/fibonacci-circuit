@@ -136,12 +136,12 @@ impl<F: FieldExt> FiboChip<F> {
         )
     }
 
-    fn assign_row(&self, mut layouter: impl Layouter<F>, prev_b: ACell<F>, prev_c: ACell<F>)
+    fn assign_row(&self, mut layouter: impl Layouter<F>, prev_b: &ACell<F>, prev_c: &ACell<F>)
         // 只需要return最后一个cell（c）
         -> Result<ACell<F>, Error> {
             layouter.assign_region(
                 || "next row",
-                |region: Region<F>| {
+                |mut region: Region<F>| {
                     self.config.selector.enable(&mut region, offset: 0);
 
                     // 所以要copy之前的b和c，给后面的b和c（为什么少了a呢？）
