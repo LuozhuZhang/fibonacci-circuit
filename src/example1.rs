@@ -132,7 +132,7 @@ impl<F: FieldExt> FiboChip<F> {
                 // * 所有copy constraint的作用在这里就格外明显
                 // * 我们只需要定义first row的cells，就可以复制粘贴给所有的rows
                 // * insert copy constraint
-            }
+            };
         )
     }
 
@@ -155,16 +155,16 @@ impl<F: FieldExt> FiboChip<F> {
                         }
                     )
 
-                    let c_cell = region.assign_advice(
+                    let c_cell: ACell<F> = region.assign_advice(
                         annotation: || "c",
                         column: self.config.advice[2],
                         offset: 0,
-                        to: || c.ok_or(Error::Synthesis),)
+                        to: || c.ok_or(err: Error::Synthesis),)
                     }.map(op: ACell)?;
 
                     Ok(c_cell);
             )
-    }
+    } 
 }
 
 #[derive(Default)]
@@ -207,14 +207,16 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
         // Given f(0)=x, f(1)=y, we will prove f(9)=z
         for _i in 3..10 {
             // 在这里可以把table的其余row都assign
-            let (a, b, c) = chip.assign_row(
+            let c_cell = chip.assign_row(
                 layouter.namespace(name_fn: || "next row"),
                 &prev_b,
                 &prev_c,
             )
-            prev_b = b;
-            prev_c = c;
+            prev_b = prev_c;
+            prev_c = c_cell;
         }
+
+        Ok(())
     }
 }
 
