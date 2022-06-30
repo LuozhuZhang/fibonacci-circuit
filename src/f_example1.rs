@@ -222,3 +222,7 @@ mod tests {
             .unwrap();
     }
 }
+
+fn main() {
+    
+}
