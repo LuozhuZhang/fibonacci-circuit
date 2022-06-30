@@ -1,10 +1,14 @@
-use std::{marker::PhantomData, default};
+use std::{marker::PhantomData, default, iter::Map};
 
 use halo2_proofs::{
     arithmetic::FieldExt,
     circuit::*,
     plonk::*, poly::Rotation,
 };
+
+// 在region.assign_advice中，如果成功就返回AssignedCell，如果失败就返回Error
+#[derive(Debug, Clone)]
+struct ACell<F: FieldExt>(AssignedCell<F, F>);
 
 #[derive(Debug, Clone)]
 // * 1.Config
@@ -79,8 +83,53 @@ impl<F: FieldExt> FiboChip<F> {
     }
 
     // 这里定义的是在Fibochip impl context下的method
-    fn assign_first_row(&self, mut layouter: impl layouter<F>, a: Option<F>, b: Option<F>) {
+    // 输入两个table中的private input，就是a和b
+    fn assign_first_row(&self, mut layouter: impl layouter<F>, a: Option<F>, b: Option<F>) 
+    -> Result<(ACell<F>, ACell<F>, ACell<F>), Error>{
+        // layouter应该就是主要用来fed数据
+        // * Layouter lays out regions in the table
+        // * region可以理解为分配约束在table中使用的空间：https://docs.google.com/presentation/d/1HUJPHXaqbmVsnmI331mJn9nRuZkeHQZkIMpWBOJ1itk/edit#slide=id.p7
+        layouter.assign_region(
+            name: || "first row",
+            assignment: |mut region| {
+                // 打开第一行的selector
+                // offset算是一种relative的位置
+                self.config.selector.enable(&mut region, offset: 0);
 
+                // assign第一个a cell（就是a0）
+                // assign_advice最终返回assignedCell或者Error
+                let a_cell = region.assign_advice(
+                    // 命名
+                    annotation: || "a",
+                    // 第几个advice column
+                    column: self.config.advice[0],
+                    // 没有relative location
+                    offset: 0,
+                    // 错误处理
+                    to: || a.ok_or(Error::Synthesis),
+                ).map(op: ACell)?;
+
+                let b_cell = region.assign_advice(
+                    annotation: || "b",
+                    column: self.config.advice[1],
+                    offset: 0,
+                    to: || a.ok_or(Error::Synthesis),
+                ).map(op: ACell)?;
+
+                // a + b = c
+                let c_val: Option<F> = a.and_then(|a| b.map(|b| a + b));
+
+                let c_cell = region.assign_advice(
+                    annotation: || "c",
+                    column: self.config.advice[2],
+                    offset: 0,
+                    to: || a.ok_or(Error::Synthesis),
+                ).map(op: ACell)?;
+
+                // 返回一个带值的tuple
+                Ok((a_cell, b_cell, c_cell))
+            }
+        )
     }
 }
 
