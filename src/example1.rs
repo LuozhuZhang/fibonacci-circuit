@@ -77,6 +77,11 @@ impl<F: FieldExt> FiboChip<F> {
 
     // fn assign()
     }
+
+    // 这里定义的是在Fibochip impl context下的method
+    fn assign_first_row(&self, mut layouter: impl layouter<F>, a: Option<F>, b: Option<F>) {
+
+    }
 }
 
 #[derive(Default)]
@@ -103,7 +108,17 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
     }
 
     fn synthesize(&self, config: Self::Config, layouter: impl Layouter<F>) -> Result<(), Error> {
-
+        // 实例化？
+        // 我们会复用这个chip，来design许多东西
+        // construct里面主要是FibConfig，里面定义了我们需要的columns数量
+        let chip = FiboChip::construct(config);
+        // assign
+        chip.assign_first_row(
+            // namespace主要作用就是传入一个name
+            // 在circuit::Layouter：https://docs.rs/halo2_proofs/0.2.0/halo2_proofs/circuit/trait.Layouter.html
+            layouter.namespace(|| "first row"),
+            self.a, self.b,
+        )
     }
 }
 
