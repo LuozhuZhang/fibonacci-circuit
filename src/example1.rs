@@ -220,6 +220,8 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
     }
 }
 
+// 在这里实例化一个circuit
+// 可以传入一些真实值做测试
 fn main() {
     println!("Hello, world!");
 }
