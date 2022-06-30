@@ -126,8 +126,12 @@ impl<F: FieldExt> FiboChip<F> {
                     to: || a.ok_or(Error::Synthesis),
                 ).map(op: ACell)?;
 
-                // 返回一个带值的tuple
+                // 返回一个带值的tuple，就是最终assigned的region
                 Ok((a_cell, b_cell, c_cell))
+
+                // * 所有copy constraint的作用在这里就格外明显
+                // * 我们只需要定义first row的cells，就可以复制粘贴给所有的rows
+                // * insert copy constraint
             }
         )
     }
