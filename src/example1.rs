@@ -4,6 +4,8 @@ use halo2_proofs::{
     arithmetic::FieldExt,
     circuit::*,
     plonk::*, poly::Rotation,
+    // 定义curve: https://docs.rs/pasta_curves/0.4.0/pasta_curves/index.html
+    pasta::Fp, dev::MockProver,
 };
 
 // 在region.assign_advice中，如果成功就返回AssignedCell，如果失败就返回Error
@@ -223,5 +225,18 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
 // 在这里实例化一个circuit
 // 可以传入一些真实值做测试
 fn main() {
-    println!("Hello, world!");
+    let k = 4;
+    // Fp上的元素
+    let a = Fp::from(1);
+    let b = Fp::from(1);
+
+    // 实例化一个circuit
+    let circuit = MyCircuit {
+        a: Some(a),
+        b: Some(b),
+    };
+
+    // 创造一个prover，用来做测试
+    let prover = MockProver::run(k, &circuit, vec![].unwrap());
+    prover.assert_satisfied();
 }
