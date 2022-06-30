@@ -141,8 +141,8 @@ impl<F: FieldExt> FiboChip<F> {
         -> Result<ACell<F>, Error> {
             layouter.assign_region(
                 || "next row",
-                |region| {
-                    self.config.selector.enable(region, offset: 0)
+                |region: Region<F>| {
+                    self.config.selector.enable(&mut region, offset: 0);
 
                     // 所以要copy之前的b和c，给后面的b和c（为什么少了a呢？）
                     // 搞懂了，因为permutation的时候有一个置换，第一行的b变成了下一行的a
@@ -154,7 +154,15 @@ impl<F: FieldExt> FiboChip<F> {
                             prev_c.0.value().map(|c| *b + *c)
                         }
                     )
-                }
+
+                    let c_cell = region.assign_advice(
+                        annotation: || "c",
+                        column: self.config.advice[2],
+                        offset: 0,
+                        to: || c.ok_or(Error::Synthesis),)
+                    }.map(op: ACell)?;
+
+                    Ok(c_cell);
             )
     }
 }
