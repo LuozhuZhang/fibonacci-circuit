@@ -135,6 +135,10 @@ impl<F: FieldExt> FiboChip<F> {
             }
         )
     }
+
+    fn assign_row(&self, &mut layout: impl Layouter<F>){
+        
+    }
 }
 
 #[derive(Default)]
@@ -160,18 +164,31 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
         // 这里就会返回FiboConfig -> Config -> FiboConfig
     }
 
-    fn synthesize(&self, config: Self::Config, layouter: impl Layouter<F>) -> Result<(), Error> {
+    fn synthesize(&self, config: Self::Config, mut layouter: impl Layouter<F>) -> Result<(), Error> {
         // 实例化？
         // 我们会复用这个chip，来design许多东西
         // construct里面主要是FibConfig，里面定义了我们需要的columns数量
         let chip = FiboChip::construct(config);
+        
         // assign
-        chip.assign_first_row(
+        let ( , mut prev_b, prev_c) = chip.assign_first_row(
             // namespace主要作用就是传入一个name
             // 在circuit::Layouter：https://docs.rs/halo2_proofs/0.2.0/halo2_proofs/circuit/trait.Layouter.html
             layouter.namespace(|| "first row"),
             self.a, self.b,
-        )
+        );
+
+        // Given f(0)=x, f(1)=y, we will prove f(9)=z
+        for _i in 3..10 {
+            // 在这里可以把table的其余row都assign
+            let (a, b, c) = chip.assign_row(
+                layouter.namespace(name_fn: || "next row"),
+                &prev_b,
+                &prev_c,
+            )
+            prev_b = b;
+            prev_c = c;
+        }
     }
 }
 
