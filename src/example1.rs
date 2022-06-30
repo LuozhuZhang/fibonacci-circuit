@@ -136,8 +136,26 @@ impl<F: FieldExt> FiboChip<F> {
         )
     }
 
-    fn assign_row(&self, &mut layout: impl Layouter<F>){
-        
+    fn assign_row(&self, mut layouter: impl Layouter<F>, prev_b: ACell<F>, prev_c: ACell<F>)
+        // 只需要return最后一个cell（c）
+        -> Result<ACell<F>, Error> {
+            layouter.assign_region(
+                || "next row",
+                |region| {
+                    self.config.selector.enable(region, offset: 0)
+
+                    // 所以要copy之前的b和c，给后面的b和c（为什么少了a呢？）
+                    // 搞懂了，因为permutation的时候有一个置换，第一行的b变成了下一行的a
+                    prev_b.0.copy_advice(annotation: || "a", &mut region, column: self.config.advice[0], offset: 0)?;
+                    prev_c.0.copy_advice(annotation: || "b", &mut region, column: self.config.advice[1], offset: 0)?;
+                
+                    let c_val = prev_b.0.value().and_then(
+                        |b| {
+                            prev_c.0.value().map(|c| *b + *c)
+                        }
+                    )
+                }
+            )
     }
 }
 
