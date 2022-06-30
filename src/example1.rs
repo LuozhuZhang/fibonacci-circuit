@@ -32,13 +32,20 @@ impl<F: FieldExt> FiboChip<F> {
     // 不是方法的关联函数，常作为返回一个结构体新实例的构造函数
 
     // configure是实际写circuit的地方，我们在这里定义custom gate等
-    fn configure(meta: &mut ConstraintSystem<F>) -> FiboConfig {
+    
+    // * 注意：我们这里采用了第二种写法，把columns放到 MyCircuit 的 configure 函数里面定义
+    // * 这样做的好处就是可以复用columns，传到不同的Chip里
+    fn configure(
+        meta: &mut ConstraintSystem<F>,
+        advice: [Column<Advice>; 3],
+        selector: Selector,
+    ) -> FiboConfig {
         // ConstraintSystem主要做电路约束，里面有许多重要的API：https://docs.rs/halo2_proofs/latest/halo2_proofs/plonk/struct.ConstraintSystem.html
         // 比如 create_gate 和 advice_column 等，用meta作为parameter-argument来调用
-        let col_a: Column<Advice> = meta.advice_column();
-        let col_b: Column<Advice> = meta.advice_column();
-        let col_c: Column<Advice> = meta.advice_column();
-        let select: Selector = meta.selector();
+        let col_a = advice[0];
+        let col_b = advice[1];
+        let col_c = advice[2];
+        let selector = meta.selector();
 
         meta.enable_equality(col_a);
         meta.enable_equality(col_b);
@@ -83,14 +90,20 @@ impl<F: FieldExt> Circuit<F> for MyCircuit<F> {
     type FloorPlanner = SimpleFloorPlanner;
 
     fn without_witnesses(&self) -> Self {
+        Self::default()
     }
 
     fn configure(meta: &mut ConstraintSystem<F>) -> Self::Config {
-        
+        let col_a = meta.advice_column();
+        let col_b = meta.advice_column();
+        let col_c = meta.advice_column();
+        let selector = meta.selector();
+        FiboChip::configure(meta, [col_a, col_b, col_c], selector)
+        // 这里就会返回FiboConfig -> Config -> FiboConfig
     }
 
     fn synthesize(&self, config: Self::Config, layouter: impl Layouter<F>) -> Result<(), Error> {
-        
+
     }
 }
 
